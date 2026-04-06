@@ -508,7 +508,7 @@ def plot_composition_bar(comp_df):
     
 
 st.subheader('Adjust the microbiome composition')
-st.caption('Adjust the sliders. The composition bar updates immediately. Click Update prediction to refresh the model output and figure.')
+st.caption('Adjust the sliders. Click Update prediction to refresh the model output and figure.')
 
 # Initialize preview state if needed
 if 'preview_comp' not in st.session_state:
@@ -542,10 +542,6 @@ with adjust_col:
         st.session_state.comp = st.session_state.preview_comp.copy()
         st.rerun()
 
-with preview_col:
-    preview_comp_df = composition_to_df(st.session_state.preview_comp)
-    preview_fig = plot_composition_bar(preview_comp_df)
-    st.pyplot(preview_fig, use_container_width=False)
     
 comp_df = composition_to_df(st.session_state.comp)
 continuous_N = predict_nugent_continuous(model, comp_df, N0=TRAIN_N0, c=TRAIN_C)[0]
