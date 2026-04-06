@@ -462,6 +462,7 @@ sample_names = [f'Sample {i}' for i in range(len(X_freq))]
 sample_idx = st.selectbox(
     'Choose a printed sample / QR-linked sample',
     range(len(X_freq)),
+    index=43,
     format_func=lambda i: sample_names[i]
 )
 
