@@ -419,8 +419,8 @@ So the model is not only looking at *how much of each group is present*, but als
 )
 
 st.latex(r"""
-r_{\mathrm{inv}}
-=
+"Health"
+\approx
 \sum_{j=1}^N \beta_j z_j
 \;-\;
 \sum_{k<j}^N \beta_{jk} z_k z_j
