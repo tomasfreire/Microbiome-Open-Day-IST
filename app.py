@@ -409,9 +409,9 @@ st.markdown(
     '''
     **How to use this activity**
     1. Choose an example microbiome.
-    2. The app predicts a health state from its composition.
+    2. The model predicts a health state from the composition.
     3. Move the sliders to change the microbiome.
-    4. Try to reach **Healthy (Nugent 0–3)**.
+    4. Try to reach a **Healthy (Nugent 0–3)** level!
     '''
 )
 
