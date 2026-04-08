@@ -17,7 +17,7 @@ st.set_page_config(page_title="Microbiome Open Day", layout="wide")
 TRAIN_N0 = 4
 TRAIN_C = 5
 
-TAXA_ORDER = [
+species_ORDER = [
     'Actinomycetota',
     'Bacillota_A_368345',
     'Bacillota_C',
@@ -30,7 +30,7 @@ TAXA_ORDER = [
     'Synergistota'
 ]
 
-TAXA_COLORS = {
+species_COLORS = {
     'Actinomycetota': '#1f77b4',
     'Bacillota_A_368345': '#ff7f0e',
     'Bacillota_C': '#2ca02c',
@@ -151,7 +151,7 @@ def load_data(csv_path='microbiome_data.csv'):
 
     X_freq = X_freq.rename(columns=RENAME_MAP)
 
-    cols = [c for c in TAXA_ORDER if c in X_freq.columns]
+    cols = [c for c in species_ORDER if c in X_freq.columns]
     X_freq = X_freq[cols]
 
     return X_freq, y
@@ -184,17 +184,17 @@ def composition_to_df(comp):
     return pd.DataFrame([[comp[t] for t in comp.keys()]], columns=list(comp.keys()))
 
 
-def update_one_taxon(current, target_taxon, new_value):
-    taxa = list(current.keys())
-    old_value = current[target_taxon]
+def update_one_species(current, target_species, new_value):
+    species = list(current.keys())
+    old_value = current[target_species]
     new_value = max(0.0, min(1.0, float(new_value)))
 
-    others = [t for t in taxa if t != target_taxon]
+    others = [t for t in species if t != target_species]
     old_other_total = 1.0 - old_value
     new_other_total = 1.0 - new_value
 
     updated = current.copy()
-    updated[target_taxon] = new_value
+    updated[target_species] = new_value
 
     if len(others) == 0:
         return normalize_composition(updated)
@@ -214,12 +214,12 @@ def update_one_taxon(current, target_taxon, new_value):
 def reset_state_from_sample(sample_series):
     comp = {k: float(sample_series[k]) for k in sample_series.index}
     comp = normalize_composition(comp)
-    st.session_state.comp = comp
 
-    # Reset slider widget values too
-    for taxon, value in comp.items():
-        st.session_state[f"slider_{taxon}"] = float(round(value * 100, 1))
+    st.session_state.comp = comp.copy()
+    st.session_state.preview_comp = comp.copy()
 
+    for species, value in comp.items():
+        st.session_state[f"slider_{species}"] = float(round(value * 100, 1))
 
 # ============================================================
 # Plotting
@@ -229,8 +229,8 @@ def illustrate_prediction_replicator_ball_live(comp_df, predicted_class):
 
     nugent_states = ['0–3', '4–6', '7–10']
     row_values = row[::-1]
-    taxa_names = row.index[::-1]
-    taxa_colors = [TAXA_COLORS[t] for t in taxa_names]
+    species_names = row.index[::-1]
+    species_colors = [species_COLORS[t] for t in species_names]
 
     fig, ax = plt.subplots(figsize=(11, 6))
 
@@ -241,7 +241,7 @@ def illustrate_prediction_replicator_ball_live(comp_df, predicted_class):
 
     bottom = 0
     bars = []
-    for value, color, label in zip(row_values, taxa_colors, taxa_names):
+    for value, color, label in zip(row_values, species_colors, species_names):
         b = ax.bar(left_x, value, bottom=bottom, color=color, width=0.5, label=label, alpha=0.85)
         bars.append(b[0])
         bottom += value
@@ -321,7 +321,7 @@ def illustrate_prediction_replicator_ball_live(comp_df, predicted_class):
         fontweight='bold'
     )
 
-    # Cleaner arrows from taxa to model
+    # Cleaner arrows from species to model
     mids = np.cumsum(row_values) - row_values / 2
     for value in mids:
         arrow = FancyArrowPatch(
@@ -359,7 +359,7 @@ def illustrate_prediction_replicator_ball_live(comp_df, predicted_class):
         list(row.index),
         bbox_to_anchor=(0.8, 1.0),
         loc='upper left',
-        title="Taxa",
+        title="species",
         frameon=True
     )
 
@@ -370,13 +370,39 @@ def illustrate_prediction_replicator_ball_live(comp_df, predicted_class):
 # ============================================================
 # App UI
 # ============================================================
-st.title('Vaginal microbiome open day activity')
+st.title('Vaginal Microbiome Lab')
 st.markdown("""
-**Tomás Freire**  
- tomas.freire@tecnico.ulisboa.com
+**Tomás Freire**, CEMAT tomas.freire@tecnico.ulisboa.pt  
+
+**Erida Gjini**, CEMAT erida.gjini@tecnico.ulisboa.pt  
+
+*Based on the scientific paper "[Modeling the human vaginal microbiome and its protection against pathogens using the replicator framework for invasion](https://www.biorxiv.org/content/10.64898/2026.02.20.707042v1)"*
 """)
 st.write(
     'Explore a microbiome composition, see the model prediction, and try to move it toward a healthy state.'
+)
+
+st.markdown(
+    '''
+    **Why study the vaginal microbiome?**  
+
+    The vaginal microbiome is a constantly changing community of microorganisms that plays an important role in women's health throughout life. In many people, it is largely made up of Lactobacillus bacteria, which help protect against harmful microbes, support the immune system, and contribute to reproductive health, including reducing the risk of sexually transmitted infections. When this balance is disrupted, it can be linked to health issues such as bacterial vaginosis, preterm birth, infertility, higher susceptibility to HIV, and other gynecological problems. Because of this, understanding how the vaginal microbiome works—and being able to predict changes in it—is an important goal for both medicine and public health. 
+    
+    <u>Mathematical and computational models</u> provide useful tools for bringing together the many biological, environmental, and clinical factors that influence this system. However, accurately modelling the vaginal microbiome is challenging due to its complexity and variability. Here we contribute to this challenge!
+    ''',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '''
+    **Representing the microbiome**  
+
+    The vaginal microbiome, like any microbiome, can be described by the different species of bacteria present in a community and their relative abundances. This diversity plays an important role in health.
+
+    Applying advanced genomic sequencing techniques, we can quantify this diversity for each individual, which species are present, how many and at what frequencies. In a model, we represent this as a set of $N$ species, indexed by $j = 1, \ldots, N$.
+
+    Then, we must reliably integrate it within models that make explicit predictions for health outcomes. 
+    '''
 )
 
 st.markdown(
@@ -409,10 +435,10 @@ st.markdown(
     """
 The model uses the microbiome composition to predict how easy it is for harmful bacteria to invade.
 
-Each taxon can affect the prediction in two ways:
+Each species can affect the prediction in two ways:
 
 - by its **own effect**
-- by its **combined effect with another taxon**
+- by its **combined interaction with another species**
 
 So the model is not only looking at *how much of each group is present*, but also at *how different groups act together*.
 """
@@ -429,9 +455,9 @@ st.latex(r"""
 st.markdown(r"""
 Here:
 
-- $z_j$ is the relative abundance of taxon $j$
-- $\beta_{j}$ measures the **effect of one taxon on its own**
-- $\beta_{jk}$ measures the **pairwise effect of two taxa together**
+- $z_j$ is the relative abundance of species $j$
+- $\beta_{j}$ measures the **effect of one species on its own**
+- $\beta_{jk}$ measures the **pairwise effect of two species together**
 
 The model then uses these effects to predict the Nugent score class.
 """)
@@ -444,14 +470,14 @@ st.markdown(
     """
 The coefficient figure summarizes what the model learned from the data - a study with 394 women.
 
-- The **linear coefficients** show the effect of each taxon by itself.
-- The **interaction coefficients** show how pairs of taxa affect the prediction together.
+- The **linear coefficients** show the effect of each species by itself.
+- The **interaction coefficients** show how pairs of species affect the prediction together.
 
 In simple terms:
 
-- some taxa are linked to **healthier states**
+- some species are linked to **healthier states**
 - others are linked to **less healthy states**
-- and some pairs of taxa have an extra effect when they appear together
+- and some pairs of species have an extra effect when they appear together
 
 This helps explain *why* changing the microbiome composition changes the prediction.
 """
@@ -483,13 +509,13 @@ def plot_composition_bar(comp_df):
     fig, ax = plt.subplots(figsize=(1.5, 3.4))
 
     bottom = 0
-    for taxon in row.index[::-1]:
-        value = row[taxon]
+    for species in row.index[::-1]:
+        value = row[species]
         ax.bar(
             0,
             value,
             bottom=bottom,
-            color=TAXA_COLORS[taxon],
+            color=species_COLORS[species],
             width=0.6
         )
         bottom += value
@@ -509,7 +535,7 @@ def plot_composition_bar(comp_df):
     
 
 st.subheader('Adjust the microbiome composition')
-st.caption('Adjust the sliders. Click Update prediction to refresh the model output and figure.')
+st.caption('Adjust the sliders to update the prediction and figure automatically.')
 
 # Initialize preview state if needed
 if 'preview_comp' not in st.session_state:
@@ -521,30 +547,29 @@ with adjust_col:
     slider_cols = st.columns(2)
     new_values = {}
 
-    for idx, taxon in enumerate(X_freq.columns):
+    for idx, species in enumerate(X_freq.columns):
         with slider_cols[idx % 2]:
-            current_val = float(st.session_state.preview_comp[taxon])
+            current_val = float(st.session_state.preview_comp[species])
 
             new_percent = st.slider(
-                f'{taxon} (%)',
+                f'{species} ',
                 min_value=0.0,
                 max_value=100.0,
                 value=float(round(current_val * 100, 1)),
                 step=0.1,
-                key=f'slider_{taxon}'
+                key=f'slider_{species}'
             )
 
-            new_values[taxon] = new_percent / 100.0
+            new_values[species] = new_percent / 100.0
 
     # Update preview composition immediately
     st.session_state.preview_comp = normalize_composition(new_values)
 
-    if st.button("Update prediction"):
-        st.session_state.comp = st.session_state.preview_comp.copy()
-        st.rerun()
 
     
-comp_df = composition_to_df(st.session_state.comp)
+
+
+comp_df = composition_to_df(st.session_state.preview_comp)
 continuous_N = predict_nugent_continuous(model, comp_df, N0=TRAIN_N0, c=TRAIN_C)[0]
 continuous_score = get_display_score_from_continuous(continuous_N)
 predicted_class = classify_score(continuous_score)
@@ -566,15 +591,17 @@ else:
 fig = illustrate_prediction_replicator_ball_live(comp_df, predicted_class)
 st.pyplot(fig, use_container_width=True)
 
-st.markdown("""
----
+st.markdown("---")
 
-### Want to see what a real research paper looks like?
+st.markdown(
+    '''
+    <small>
+    <b>Acknowledgments.</b> This work is supported by Fundação para a Ciência e a Tecnologia (FCT) through the project <i>Models4Invasion</i> (grant number 2022.03060.PTDC).
 
-This project comes from actual research — you can explore the full preprint here:  
-🔗 [Read the paper](https://www.biorxiv.org/content/10.64898/2026.02.20.707042v1)
+    <br><br>
 
-Feel free to scroll through it — even just the figures tell a story!
-""")
-
-
+    The first version of this interactive tool (v1) was prepared for the Instituto Superior Técnico Open Day, 18 April 2026.
+    </small>
+    ''',
+    unsafe_allow_html=True
+)
