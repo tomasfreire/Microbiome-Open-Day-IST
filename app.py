@@ -382,15 +382,39 @@ st.write(
     'Explore a microbiome composition, see the model prediction, and try to move it toward a healthy state.'
 )
 
+col1, col2 = st.columns([1.2, 1])
+
+with col1:
+    st.markdown(
+        '''
+        **Why study the vaginal microbiome?**  
+
+        The vaginal microbiome is a constantly changing community of microorganisms that plays an important role in women's health throughout life. In many people, it is largely made up of Lactobacillus bacteria, which help protect against harmful microbes, support the immune system, and contribute to reproductive health, including reducing the risk of sexually transmitted infections. When this balance is disrupted, it can be linked to health issues such as bacterial vaginosis, preterm birth, infertility, higher susceptibility to HIV, and other gynecological problems. Because of this, understanding how the vaginal microbiome works—and being able to predict changes in it—is an important goal for both medicine and public health. 
+        
+        <u>Mathematical and computational models</u> provide useful tools for bringing together the many biological, environmental, and clinical factors that influence this system. However, accurately modelling the vaginal microbiome is challenging due to its complexity and variability. Here we contribute to this challenge!
+        ''',
+        unsafe_allow_html=True
+    )
+
+with col2:
+    st.image(
+        "microbiome_intro.png",
+        caption="A microbial ecosystem dominated by protective bacteria.",
+        use_container_width=True
+    )
+    
 st.markdown(
     '''
-    **Why study the vaginal microbiome?**  
+    **How do we measure health? (Nugent score)**  
 
-    The vaginal microbiome is a constantly changing community of microorganisms that plays an important role in women's health throughout life. In many people, it is largely made up of Lactobacillus bacteria, which help protect against harmful microbes, support the immune system, and contribute to reproductive health, including reducing the risk of sexually transmitted infections. When this balance is disrupted, it can be linked to health issues such as bacterial vaginosis, preterm birth, infertility, higher susceptibility to HIV, and other gynecological problems. Because of this, understanding how the vaginal microbiome works—and being able to predict changes in it—is an important goal for both medicine and public health. 
-    
-    <u>Mathematical and computational models</u> provide useful tools for bringing together the many biological, environmental, and clinical factors that influence this system. However, accurately modelling the vaginal microbiome is challenging due to its complexity and variability. Here we contribute to this challenge!
-    ''',
-    unsafe_allow_html=True
+    To assess vaginal health, researchers often use the **Nugent score**, a simple scale from 0 to 10 based on the types of bacteria observed under a microscope.
+
+    - **0–3 → Healthy** 
+    - **4–6 → Intermediate**
+    - **7–10 → Unhealthy (bacterial vaginosis)**
+
+    In this activity, our model predicts this score from the microbiome composition — and you can try to improve it by changing the species!
+    '''
 )
 
 st.markdown(
@@ -407,11 +431,26 @@ st.markdown(
 
 st.markdown(
     '''
+    **Where does the data come from?**  
+
+    The samples used in this activity come from a study of the human vaginal microbiome by 
+    Ravel et al.
+
+
+    These data are widely used in research and form the basis of the model you are exploring here.
+
+    Check the original paper:  
+    https://www.pnas.org/doi/10.1073/pnas.1002611107
+    '''
+)
+
+st.markdown(
+    '''
     **How to use this activity**
     1. Choose an example microbiome.
-    2. The model predicts a health state from the composition.
+    2. The app predicts a health state from its composition.
     3. Move the sliders to change the microbiome.
-    4. Try to reach a **Healthy (Nugent 0–3)** level!
+    4. Try to reach **Healthy (Nugent 0–3)**.
     '''
 )
 
@@ -466,27 +505,52 @@ st.subheader("What the coefficients mean")
 
 st.image("coefficients.png", caption="Model coefficients", use_container_width=True)
 
+#st.markdown(
+#    """
+#The coefficient figure summarizes what the model learned from the data - a study with 394 women.
+
+#- The **linear coefficients** show the effect of each species by itself.
+#- The **interaction coefficients** show how pairs of species affect the prediction together.
+
+#In simple terms:
+
+#- some species are linked to **healthier states**
+#- others are linked to **less healthy states**
+#- and some pairs of species have an extra effect when they appear together
+
+#This helps explain *why* changing the microbiome composition changes the prediction.
+#"""
+#)
+
 st.markdown(
     """
-The coefficient figure summarizes what the model learned from the data - a study with 394 women.
+The coefficient figure summarizes what the model learned from the data.
 
-- The **linear coefficients** show the effect of each species by itself.
-- The **interaction coefficients** show how pairs of species affect the prediction together.
+- **Linear coefficients** → effect of each species alone  
+- **Interaction coefficients** → how pairs of species act together
+"""
+)
 
-In simple terms:
+st.markdown(
+    """
+**Key takeaways from the model**
 
-- some species are linked to **healthier states**
-- others are linked to **less healthy states**
-- and some pairs of species have an extra effect when they appear together
+- **Negative linear coefficients → linked to healthier microbiomes**  
+- **Positive linear coefficients → linked to less healthy states**
 
-This helps explain *why* changing the microbiome composition changes the prediction.
+- In particular, **Lactobacillus** (within *Bacillota_I*) is strongly associated with **health**.
+
+- ⚠️ **But beware:**  
+  A “good” species is not always good on its own — its effect can change depending on what other species are present.
+
+This is why the model includes **interactions between species**:  health depends on the *whole ecosystem*, not just individual bacteria.
 """
 )
 
 
 sample_names = [f'Sample {i}' for i in range(len(X_freq))]
 sample_idx = st.selectbox(
-    'Choose a printed sample / QR-linked sample',
+    'Choose a real microbiome sample',
     range(len(X_freq)),
     index=43,
     format_func=lambda i: sample_names[i]
@@ -562,11 +626,8 @@ with adjust_col:
 
             new_values[species] = new_percent / 100.0
 
-    # Update preview composition immediately
     st.session_state.preview_comp = normalize_composition(new_values)
-
-
-    
+    st.session_state.comp = st.session_state.preview_comp.copy()
 
 
 comp_df = composition_to_df(st.session_state.preview_comp)
@@ -590,6 +651,17 @@ else:
 
 fig = illustrate_prediction_replicator_ball_live(comp_df, predicted_class)
 st.pyplot(fig, use_container_width=True)
+
+st.markdown(
+    """
+**Why is this useful?**
+
+- The model does not just make predictions — it also helps us understand **which** bacterial groups are linked to health and **how** they interact.
+- In the full research study, we also compared this approach with standard **machine learning methods**, and it achieved **similar predictive performance** while remaining much easier to interpret.
+
+This means we can combine prediction and biological understanding in the same model.
+"""
+)
 
 st.markdown("---")
 
