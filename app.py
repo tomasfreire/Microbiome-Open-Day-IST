@@ -434,7 +434,7 @@ st.markdown(
     **Where does the data come from?**  
 
     The samples used in this activity come from a study of the human vaginal microbiome by 
-    Ravel et al.
+    Ravel et al. 2010
 
 
     These data are widely used in research and form the basis of the model you are exploring here.
@@ -448,7 +448,7 @@ st.markdown(
     '''
     **How to use this activity**
     1. Choose an example microbiome.
-    2. The app predicts a health state from its composition.
+    2. The model predicts a health state from its composition.
     3. Move the sliders to change the microbiome.
     4. Try to reach **Healthy (Nugent 0–3)**.
     '''
@@ -599,7 +599,7 @@ def plot_composition_bar(comp_df):
     
 
 st.subheader('Adjust the microbiome composition')
-st.caption('Adjust the sliders to update the prediction and figure automatically.')
+st.caption("Adjust the sliders, then click 'Update prediction'.")
 
 # Initialize preview state if needed
 if 'preview_comp' not in st.session_state:
@@ -627,10 +627,14 @@ with adjust_col:
             new_values[species] = new_percent / 100.0
 
     st.session_state.preview_comp = normalize_composition(new_values)
-    st.session_state.comp = st.session_state.preview_comp.copy()
+
+    apply_button = st.button("Update prediction")
+
+    if apply_button:
+        st.session_state.comp = st.session_state.preview_comp.copy()
 
 
-comp_df = composition_to_df(st.session_state.preview_comp)
+comp_df = composition_to_df(st.session_state.comp)
 continuous_N = predict_nugent_continuous(model, comp_df, N0=TRAIN_N0, c=TRAIN_C)[0]
 continuous_score = get_display_score_from_continuous(continuous_N)
 predicted_class = classify_score(continuous_score)
