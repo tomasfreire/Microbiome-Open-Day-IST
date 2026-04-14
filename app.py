@@ -492,7 +492,7 @@ st.latex(r"""
 """)
 
 st.markdown(r"""
-Here:
+In this equation:
 
 - $z_j$ is the relative abundance of species $j$
 - $\beta_{j}$ measures the **effect of one species on its own**
@@ -533,14 +533,14 @@ The coefficient figure summarizes what the model learned from the data.
 
 st.markdown(
     """
-**Key takeaways from the model**
+**🚨 Key takeaways**
 
 - **Negative linear coefficients → linked to healthier microbiomes**  
 - **Positive linear coefficients → linked to less healthy states**
 
 - In particular, **Lactobacillus** (within *Bacillota_I*) is strongly associated with **health**.
 
-- ⚠️ **But beware:**  
+ **⚠️ But beware:**  
   A “good” species is not always good on its own — its effect can change depending on what other species are present.
 
 This is why the model includes **interactions between species**:  health depends on the *whole ecosystem*, not just individual bacteria.
