@@ -399,7 +399,7 @@ with col1:
 with col2:
     st.image(
         "microbiome_intro.png",
-        caption="A microbial ecosystem dominated by protective bacteria.",
+        caption="A microbial ecosystem dominated by protective bacteria. Image generated using AI.",
         use_container_width=True
     )
     
