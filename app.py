@@ -484,7 +484,7 @@ So the model is not only looking at *how much of each group is present*, but als
 )
 
 st.latex(r"""
-"Health"
+"Disease"
 \approx
 \sum_{j=1}^N \beta_j z_j
 \;-\;
